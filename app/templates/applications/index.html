@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+
+{% block title %}Applications — JobFlow{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+  <div>
+    <h2 class="h3 fw-bold mb-1">Job Applications</h2>
+    <p class="text-muted small mb-0">Search, filter, and track all your active and past job applications.</p>
+  </div>
+  <div>
+    <a href="{{ url_for('applications.create') }}" class="btn btn-primary">
+      <i class="bi bi-plus-lg me-1"></i> Add Application
+    </a>
+  </div>
+</div>
+
+<!-- Search & Filtering Card -->
+<div class="card p-3 mb-4 bg-white">
+  <form method="GET" action="{{ url_for('applications.index') }}" class="row g-2 align-items-end">
+    <!-- Search keyword -->
+    <div class="col-md-3">
+      <label class="form-label small fw-semibold text-secondary mb-1">Search Keywords</label>
+      <div class="input-group">
+        <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
+        <input type="text" name="search" class="form-control border-start-0" placeholder="Company, title, location..." value="{{ filters.search }}">
+      </div>
+    </div>
+
+    <!-- Status filter -->
+    <div class="col-sm-6 col-md-2">
+      <label class="form-label small fw-semibold text-secondary mb-1">Status</label>
+      <select name="status" class="form-select">
+        <option value="">All Statuses</option>
+        {% for s in statuses %}
+          <option value="{{ s }}" {% if filters.status == s %}selected{% endif %}>{{ s }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- Priority filter -->
+    <div class="col-sm-6 col-md-2">
+      <label class="form-label small fw-semibold text-secondary mb-1">Priority</label>
+      <select name="priority" class="form-select">
+        <option value="">All Priorities</option>
+        {% for p in priorities %}
+          <option value="{{ p }}" {% if filters.priority == p %}selected{% endif %}>{{ p }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- Work Mode filter -->
+    <div class="col-sm-6 col-md-2">
+      <label class="form-label small fw-semibold text-secondary mb-1">Work Mode</label>
+      <select name="work_mode" class="form-select">
+        <option value="">All Modes</option>
+        {% for m in work_modes %}
+          <option value="{{ m }}" {% if filters.work_mode == m %}selected{% endif %}>{{ m }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- Sort By -->
+    <div class="col-sm-6 col-md-2">
+      <label class="form-label small fw-semibold text-secondary mb-1">Sort By</label>
+      <select name="sort" class="form-select">
+        <option value="newest" {% if filters.sort == 'newest' %}selected{% endif %}>Newest Date</option>
+        <option value="oldest" {% if filters.sort == 'oldest' %}selected{% endif %}>Oldest Date</option>
+        <option value="company_asc" {% if filters.sort == 'company_asc' %}selected{% endif %}>Company A-Z</option>
+        <option value="priority" {% if filters.sort == 'priority' %}selected{% endif %}>Priority (High to Low)</option>
+      </select>
+    </div>
+
+    <!-- Filter Buttons -->
+    <div class="col-md-1 d-flex gap-1">
+      <button type="submit" class="btn btn-primary w-100" title="Apply Filters">
+        <i class="bi bi-funnel-fill"></i>
+      </button>
+      {% if filters.search or filters.status or filters.priority or filters.work_mode or filters.sort != 'newest' %}
+        <a href="{{ url_for('applications.index') }}" class="btn btn-outline-secondary" title="Reset Filters">
+          <i class="bi bi-x-circle"></i>
+        </a>
+      {% endif %}
+    </div>
+  </form>
+</div>
+
+<!-- Applications Table Card -->
+<div class="card">
+  <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+    <div class="fw-semibold text-secondary small">
+      Showing <strong>{{ applications | length }}</strong> of <strong>{{ pagination.total }}</strong> applications
+    </div>
+  </div>
+
+  <div class="card-body p-0">
+    {% if applications %}
+      <div class="table-responsive">
+        <table class="table table-custom mb-0">
+          <thead>
+            <tr>
+              <th>Company</th>
+              <th>Role</th>
+              <th>Location</th>
+              <th>Application Date</th>
+              <th>Work Mode</th>
+              <th>Priority</th>
+              <th>Status</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for app in applications %}
+              <tr>
+                <td>
+                  <a href="{{ url_for('applications.detail', id=app.id) }}" class="fw-bold text-dark text-decoration-none">
+                    {{ app.company_name }}
+                  </a>
+                </td>
+                <td>{{ app.job_title }}</td>
+                <td>
+                  <span class="text-muted small">
+                    <i class="bi bi-geo-alt me-1"></i>{{ app.location or 'Not specified' }}
+                  </span>
+                </td>
+                <td>{{ app.application_date.strftime('%b %d, %Y') }}</td>
+                <td>
+                  <span class="badge bg-light text-secondary border">{{ app.work_mode }}</span>
+                </td>
+                <td>
+                  <span class="badge {{ app.priority_badge_class }}">{{ app.priority }}</span>
+                </td>
+                <td>
+                  <span class="badge-status {{ app.status_badge_class }}">
+                    {{ app.status }}
+                  </span>
+                </td>
+                <td class="text-end">
+                  <div class="btn-group btn-group-sm">
+                    <a href="{{ url_for('applications.detail', id=app.id) }}" class="btn btn-light border" title="View Details">
+                      <i class="bi bi-eye"></i>
+                    </a>
+                    <a href="{{ url_for('applications.edit', id=app.id) }}" class="btn btn-light border" title="Edit Application">
+                      <i class="bi bi-pencil"></i>
+                    </a>
+                    <button type="button" class="btn btn-light border text-danger"
+                            data-bs-toggle="modal"
+                            data-bs-target="#confirmDeleteModal"
+                            data-action-url="{{ url_for('applications.delete', id=app.id) }}"
+                            data-item-name="{{ app.company_name }} ({{ app.job_title }})"
+                            title="Delete Application">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination Navigation -->
+      {% if pagination.pages > 1 %}
+        <div class="p-3 border-top d-flex justify-content-center">
+          <nav aria-label="Page navigation">
+            <ul class="pagination pagination-sm mb-0">
+              <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+                <a class="page-link" href="{{ url_for('applications.index', page=pagination.prev_num, **filters) }}">Previous</a>
+              </li>
+              {% for p in pagination.iter_pages(left_edge=2, left_current=2, right_current=3, right_edge=2) %}
+                {% if p %}
+                  <li class="page-item {% if p == pagination.page %}active{% endif %}">
+                    <a class="page-link" href="{{ url_for('applications.index', page=p, **filters) }}">{{ p }}</a>
+                  </li>
+                {% else %}
+                  <li class="page-item disabled"><span class="page-link">&hellip;</span></li>
+                {% endif %}
+              {% endfor %}
+              <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                <a class="page-link" href="{{ url_for('applications.index', page=pagination.next_num, **filters) }}">Next</a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      {% endif %}
+
+    {% else %}
+      <div class="text-center py-5">
+        <i class="bi bi-search fs-1 text-muted d-block mb-3"></i>
+        <h5 class="h6 fw-bold">No Applications Match Your Criteria</h5>
+        <p class="text-muted small mb-3">Try adjusting your filters or clear them to see all records.</p>
+        <a href="{{ url_for('applications.index') }}" class="btn btn-outline-secondary btn-sm me-2">Clear Filters</a>
+        <a href="{{ url_for('applications.create') }}" class="btn btn-primary btn-sm">Add New Application</a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

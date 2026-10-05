@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block title %}JobFlow — Manage Your Job Search. Stay Organized.{% endblock %}
+
+{% block public_content %}
+<!-- Hero Section -->
+<section class="landing-hero">
+  <div class="container-xl">
+    <div class="row justify-content-center">
+      <div class="col-lg-9 col-xl-8">
+        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fw-semibold mb-3">
+          <i class="bi bi-stars me-1"></i> Purpose-Built for Modern Tech Professionals
+        </span>
+        <h1 class="mt-2 mb-3">Manage Your Job Search.<br class="d-none d-md-inline"> Stay Organized.</h1>
+        <p class="lead">
+          Track applications, interviews, follow-ups and career progress from one centralized platform.
+          Transform chaotic spreadsheets into a systematic, high-converting career pipeline.
+        </p>
+        <div class="d-flex flex-wrap justify-content-center gap-3">
+          <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg px-4 py-2 fw-semibold">
+            Get Started Free <i class="bi bi-arrow-right ms-2"></i>
+          </a>
+          <a href="{{ url_for('auth.login') }}" class="btn btn-outline-secondary btn-lg px-4 py-2">
+            Sign In to Dashboard
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Feature Grid Section -->
+<section class="py-5 bg-white border-top border-bottom">
+  <div class="container-xl py-4">
+    <div class="text-center mb-5">
+      <h2 class="fw-bold tracking-tight mb-2">Everything You Need to Land Your Next Role</h2>
+      <p class="text-muted">Designed for clarity, focus, and actionable momentum throughout your job hunt.</p>
+    </div>
+
+    <div class="row g-4">
+      <!-- Feature 1: Application Tracking -->
+      <div class="col-md-6 col-lg-3">
+        <div class="feature-card">
+          <div class="feature-icon-wrapper bg-primary-subtle text-primary">
+            <i class="bi bi-kanban"></i>
+          </div>
+          <h4 class="h5 fw-bold mb-2">Application Tracking</h4>
+          <p class="text-muted small mb-0">
+            Log roles, target companies, locations, compensation ranges, and track stages from Applied to Offer with real-time status badges.
+          </p>
+        </div>
+      </div>
+
+      <!-- Feature 2: Interview Management -->
+      <div class="col-md-6 col-lg-3">
+        <div class="feature-card">
+          <div class="feature-icon-wrapper bg-info-subtle text-info">
+            <i class="bi bi-calendar-event"></i>
+          </div>
+          <h4 class="h5 fw-bold mb-2">Interview Management</h4>
+          <p class="text-muted small mb-0">
+            Schedule every technical round, managerial interview, and take preparation notes with dates, meeting links, and interviewer details.
+          </p>
+        </div>
+      </div>
+
+      <!-- Feature 3: Follow-up Tracking -->
+      <div class="col-md-6 col-lg-3">
+        <div class="feature-card">
+          <div class="feature-icon-wrapper bg-warning-subtle text-warning">
+            <i class="bi bi-bell"></i>
+          </div>
+          <h4 class="h5 fw-bold mb-2">Follow-up Tracking</h4>
+          <p class="text-muted small mb-0">
+            Never let a recruiter touchpoint slip through the cracks. Schedule automated reminders for emails, LinkedIn messages, and check-ins.
+          </p>
+        </div>
+      </div>
+
+      <!-- Feature 4: Analytics -->
+      <div class="col-md-6 col-lg-3">
+        <div class="feature-card">
+          <div class="feature-icon-wrapper bg-success-subtle text-success">
+            <i class="bi bi-graph-up-arrow"></i>
+          </div>
+          <h4 class="h5 fw-bold mb-2">Analytics & Insights</h4>
+          <p class="text-muted small mb-0">
+            Understand your conversion funnel with calculated interview rates, offer rates, and monthly timeline distributions using Chart.js.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Call to Action Banner -->
+<section class="py-5" style="background: linear-gradient(135deg, #0f172a, #1e1b4b); color: #fff;">
+  <div class="container-xl py-4 text-center">
+    <h2 class="fw-bold mb-3">Ready to Take Control of Your Career Search?</h2>
+    <p class="text-secondary max-w-xl mx-auto mb-4" style="max-width: 600px;">
+      Join developers, engineers, and tech professionals streamlining their job hunt with JobFlow today.
+    </p>
+    <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg px-4 py-2">
+      Create Your Account <i class="bi bi-arrow-right ms-2"></i>
+    </a>
+  </div>
+</section>
+{% endblock %}

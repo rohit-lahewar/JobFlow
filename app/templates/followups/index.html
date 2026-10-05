@@ -1,0 +1,190 @@
+{% extends 'base.html' %}
+
+{% block title %}Follow-ups — JobFlow{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+  <div>
+    <h2 class="h3 fw-bold mb-1">Follow-up Management</h2>
+    <p class="text-muted small mb-0">Stay proactive and never miss an opportunity to follow up with recruiters.</p>
+  </div>
+  <div>
+    <a href="{{ url_for('followups.create') }}" class="btn btn-primary">
+      <i class="bi bi-bell-plus me-1"></i> Schedule Follow-up
+    </a>
+  </div>
+</div>
+
+<!-- Tabs for Pending / Completed / All -->
+<div class="card bg-white p-3 mb-4">
+  <ul class="nav nav-pills mb-3" id="followupTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="pending-tab" data-bs-toggle="pill" data-bs-target="#pending" type="button" role="tab">
+        <i class="bi bi-clock-history me-1"></i> Pending & Due ({{ pending | length }})
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="completed-tab" data-bs-toggle="pill" data-bs-target="#completed" type="button" role="tab">
+        <i class="bi bi-check-circle me-1"></i> Completed ({{ completed | length }})
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="all-tab" data-bs-toggle="pill" data-bs-target="#all" type="button" role="tab">
+        <i class="bi bi-card-list me-1"></i> All ({{ all_followups | length }})
+      </button>
+    </li>
+  </ul>
+
+  <div class="tab-content" id="followupTabsContent">
+    <!-- Pending Follow-ups -->
+    <div class="tab-pane fade show active" id="pending" role="tabpanel">
+      {% if pending %}
+        <div class="table-responsive">
+          <table class="table table-custom mb-0">
+            <thead>
+              <tr>
+                <th>Due Date</th>
+                <th>Company & Role</th>
+                <th>Channel</th>
+                <th>Notes</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for f in pending %}
+                {% set is_overdue = f.followup_date < today %}
+                <tr class="{% if is_overdue %}table-warning-subtle{% endif %}">
+                  <td>
+                    <span class="{% if is_overdue %}text-danger fw-bold{% else %}fw-semibold text-dark{% endif %}">
+                      {{ f.followup_date.strftime('%a, %b %d, %Y') }}
+                    </span>
+                    {% if is_overdue %}
+                      <span class="badge bg-danger ms-1">Overdue</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <a href="{{ url_for('applications.detail', id=f.application_id) }}" class="fw-bold text-dark text-decoration-none">
+                      {{ f.application.company_name }}
+                    </a>
+                    <div class="small text-muted">{{ f.application.job_title }}</div>
+                  </td>
+                  <td>
+                    <span class="badge bg-light text-secondary border">
+                      <i class="bi {% if f.followup_type == 'Email' %}bi-envelope{% elif f.followup_type == 'LinkedIn' %}bi-linkedin{% elif f.followup_type == 'Phone' %}bi-telephone{% else %}bi-chat-dots{% endif %} me-1"></i>
+                      {{ f.followup_type }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="small text-secondary">{{ f.notes or 'No notes specified.' }}</span>
+                  </td>
+                  <td class="text-end">
+                    <div class="d-inline-flex gap-1">
+                      <form method="POST" action="{{ url_for('followups.mark_completed', id=f.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-sm btn-outline-success" title="Mark Done">
+                          <i class="bi bi-check2"></i> Done
+                        </button>
+                      </form>
+                      <a href="{{ url_for('followups.edit', id=f.id) }}" class="btn btn-sm btn-light border" title="Edit">
+                        <i class="bi bi-pencil"></i>
+                      </a>
+                      <button type="button" class="btn btn-sm btn-light border text-danger"
+                              data-bs-toggle="modal"
+                              data-bs-target="#confirmDeleteModal"
+                              data-action-url="{{ url_for('followups.delete', id=f.id) }}"
+                              data-item-name="{{ f.followup_type }} follow-up for {{ f.application.company_name }}">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="text-center py-5 text-muted">
+          <i class="bi bi-check-circle fs-1 text-success d-block mb-2"></i>
+          <h5 class="h6 fw-bold">All Follow-ups Completed</h5>
+          <p class="small text-muted mb-3">No pending outreach or check-ins right now.</p>
+          <a href="{{ url_for('followups.create') }}" class="btn btn-sm btn-outline-primary">Schedule New Follow-up</a>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Completed Follow-ups -->
+    <div class="tab-pane fade" id="completed" role="tabpanel">
+      {% if completed %}
+        <div class="table-responsive">
+          <table class="table table-custom mb-0">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Company & Role</th>
+                <th>Channel</th>
+                <th>Status</th>
+                <th>Notes</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for f in completed %}
+                <tr>
+                  <td>{{ f.followup_date.strftime('%b %d, %Y') }}</td>
+                  <td>
+                    <a href="{{ url_for('applications.detail', id=f.application_id) }}" class="fw-bold text-dark text-decoration-none">
+                      {{ f.application.company_name }}
+                    </a>
+                  </td>
+                  <td>{{ f.followup_type }}</td>
+                  <td><span class="badge bg-success-subtle text-success">Completed</span></td>
+                  <td><span class="small text-muted">{{ f.notes or '—' }}</span></td>
+                  <td class="text-end">
+                    <a href="{{ url_for('followups.edit', id=f.id) }}" class="btn btn-sm btn-light border">Edit</a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="text-center py-5 text-muted">No completed follow-ups yet.</div>
+      {% endif %}
+    </div>
+
+    <!-- All Follow-ups -->
+    <div class="tab-pane fade" id="all" role="tabpanel">
+      {% if all_followups %}
+        <div class="table-responsive">
+          <table class="table table-custom mb-0">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Company</th>
+                <th>Channel</th>
+                <th>Status</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for f in all_followups %}
+                <tr>
+                  <td>{{ f.followup_date.strftime('%b %d, %Y') }}</td>
+                  <td>{{ f.application.company_name }}</td>
+                  <td>{{ f.followup_type }}</td>
+                  <td><span class="badge {{ f.status_badge_class }}">{{ f.status }}</span></td>
+                  <td class="text-end">
+                    <a href="{{ url_for('followups.edit', id=f.id) }}" class="btn btn-sm btn-light border">Edit</a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="text-center py-5 text-muted">No follow-ups recorded yet.</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

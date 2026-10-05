@@ -1,0 +1,319 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard — JobFlow{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+  <div>
+    <h2 class="h3 fw-bold mb-1">Welcome back, {{ current_user.name }}! 👋</h2>
+    <p class="text-muted small mb-0">Here is your live job application and interview pipeline overview.</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('applications.create') }}" class="btn btn-primary">
+      <i class="bi bi-plus-circle me-1"></i> New Application
+    </a>
+    <a href="{{ url_for('interviews.create') }}" class="btn btn-outline-secondary">
+      <i class="bi bi-calendar-event me-1"></i> Schedule Interview
+    </a>
+  </div>
+</div>
+
+<!-- KPI Metric Cards Grid -->
+<div class="row g-3 mb-4">
+  <!-- Total Applications -->
+  <div class="col-sm-6 col-lg-2">
+    <div class="stat-card">
+      <div class="d-flex justify-content-between align-items-center">
+        <span class="stat-label">Total Apps</span>
+        <div class="stat-icon bg-primary-subtle text-primary">
+          <i class="bi bi-folder2-open"></i>
+        </div>
+      </div>
+      <div class="stat-value text-primary">{{ metrics.total_applications }}</div>
+      <span class="small text-muted">All-time tracked</span>
+    </div>
+  </div>
+
+  <!-- Active Applications -->
+  <div class="col-sm-6 col-lg-2">
+    <div class="stat-card">
+      <div class="d-flex justify-content-between align-items-center">
+        <span class="stat-label">In Progress</span>
+        <div class="stat-icon bg-info-subtle text-info">
+          <i class="bi bi-hourglass-split"></i>
+        </div>
+      </div>
+      <div class="stat-value text-info">{{ metrics.active_applications }}</div>
+      <span class="small text-muted">Ongoing pipeline</span>
+    </div>
+  </div>
+
+  <!-- Shortlisted -->
+  <div class="col-sm-6 col-lg-2">
+    <div class="stat-card">
+      <div class="d-flex justify-content-between align-items-center">
+        <span class="stat-label">Shortlisted</span>
+        <div class="stat-icon bg-primary-subtle text-primary">
+          <i class="bi bi-bookmark-check"></i>
+        </div>
+      </div>
+      <div class="stat-value" style="color: #6366f1;">{{ metrics.shortlisted }}</div>
+      <span class="small text-muted">Screened & passed</span>
+    </div>
+  </div>
+
+  <!-- Interviews -->
+  <div class="col-sm-6 col-lg-2">
+    <div class="stat-card">
+      <div class="d-flex justify-content-between align-items-center">
+        <span class="stat-label">Interviews</span>
+        <div class="stat-icon bg-warning-subtle text-warning">
+          <i class="bi bi-person-video2"></i>
+        </div>
+      </div>
+      <div class="stat-value text-warning">{{ metrics.interviews }}</div>
+      <span class="small text-muted">Active stages</span>
+    </div>
+  </div>
+
+  <!-- Offers -->
+  <div class="col-sm-6 col-lg-2">
+    <div class="stat-card">
+      <div class="d-flex justify-content-between align-items-center">
+        <span class="stat-label">Offers</span>
+        <div class="stat-icon bg-success-subtle text-success">
+          <i class="bi bi-trophy-fill"></i>
+        </div>
+      </div>
+      <div class="stat-value text-success">{{ metrics.offers }}</div>
+      <span class="small text-muted">Received offers</span>
+    </div>
+  </div>
+
+  <!-- Rejected -->
+  <div class="col-sm-6 col-lg-2">
+    <div class="stat-card">
+      <div class="d-flex justify-content-between align-items-center">
+        <span class="stat-label">Rejected</span>
+        <div class="stat-icon bg-danger-subtle text-danger">
+          <i class="bi bi-x-circle"></i>
+        </div>
+      </div>
+      <div class="stat-value text-danger">{{ metrics.rejected }}</div>
+      <span class="small text-muted">Archived / closed</span>
+    </div>
+  </div>
+</div>
+
+<!-- Dashboard Charts Row -->
+<div class="row g-4 mb-4">
+  <!-- Applications by Status Donut Chart -->
+  <div class="col-lg-5">
+    <div class="card h-100 p-3">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="h6 fw-bold mb-0">Application Status Distribution</h5>
+        <span class="badge bg-light text-muted border">Live Database</span>
+      </div>
+      <div style="position: relative; height: 260px;">
+        <canvas id="statusChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Monthly Applications Timeline Bar Chart -->
+  <div class="col-lg-7">
+    <div class="card h-100 p-3">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="h6 fw-bold mb-0">Monthly Applications Activity</h5>
+        <span class="badge bg-light text-muted border">Last 6 Months</span>
+      </div>
+      <div style="position: relative; height: 260px;">
+        <canvas id="monthlyChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Pipeline Details Grid: Upcoming Interviews & Follow-ups Due -->
+<div class="row g-4 mb-4">
+  <!-- Upcoming Interviews Card -->
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+        <h5 class="h6 fw-bold mb-0">
+          <i class="bi bi-calendar-check text-primary me-2"></i>Upcoming Interviews
+        </h5>
+        <a href="{{ url_for('interviews.index') }}" class="small fw-semibold text-primary text-decoration-none">View All</a>
+      </div>
+      <div class="card-body p-0">
+        {% if metrics.upcoming_interviews %}
+          <div class="list-group list-group-flush">
+            {% for iv in metrics.upcoming_interviews %}
+              <div class="list-group-item p-3 d-flex justify-content-between align-items-center">
+                <div>
+                  <div class="fw-bold text-dark">{{ iv.application.company_name }}</div>
+                  <div class="small text-muted">{{ iv.round_name }} &bull; {{ iv.application.job_title }}</div>
+                  <div class="small text-secondary mt-1">
+                    <i class="bi bi-clock me-1"></i>{{ iv.interview_date.strftime('%a, %b %d, %Y') }}
+                    {% if iv.start_time %} at {{ iv.start_time }}{% endif %}
+                    <span class="badge bg-secondary-subtle text-secondary ms-1">{{ iv.interview_type }}</span>
+                  </div>
+                </div>
+                <div class="text-end">
+                  {% if iv.meeting_link %}
+                    <a href="{{ iv.meeting_link }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-primary mb-1">
+                      <i class="bi bi-camera-video me-1"></i>Join Link
+                    </a>
+                  {% endif %}
+                  <div>
+                    <a href="{{ url_for('interviews.edit', id=iv.id) }}" class="btn btn-sm btn-light border">Edit</a>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-center py-4 px-3 text-muted">
+            <i class="bi bi-calendar-x fs-2 d-block mb-2 text-secondary"></i>
+            <p class="mb-1 fw-semibold">No upcoming interviews scheduled</p>
+            <p class="small mb-3">When you secure an interview, schedule it here to prepare.</p>
+            <a href="{{ url_for('interviews.create') }}" class="btn btn-sm btn-outline-primary">Schedule Interview</a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Follow-ups Due Card -->
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+        <h5 class="h6 fw-bold mb-0">
+          <i class="bi bi-bell text-warning me-2"></i>Follow-ups Due
+        </h5>
+        <a href="{{ url_for('followups.index') }}" class="small fw-semibold text-primary text-decoration-none">View All</a>
+      </div>
+      <div class="card-body p-0">
+        {% if metrics.due_followups %}
+          <div class="list-group list-group-flush">
+            {% for f in metrics.due_followups %}
+              <div class="list-group-item p-3 d-flex justify-content-between align-items-center">
+                <div>
+                  <div class="fw-bold text-dark">{{ f.application.company_name }}</div>
+                  <div class="small text-muted">{{ f.followup_type }} Follow-up &bull; {{ f.application.job_title }}</div>
+                  <div class="small text-danger mt-1 fw-semibold">
+                    <i class="bi bi-calendar-event me-1"></i>Due: {{ f.followup_date.strftime('%a, %b %d, %Y') }}
+                  </div>
+                  {% if f.notes %}
+                    <div class="small text-secondary mt-1 fst-italic">"{{ f.notes | truncate(60) }}"</div>
+                  {% endif %}
+                </div>
+                <div>
+                  <form method="POST" action="{{ url_for('followups.mark_completed', id=f.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-sm btn-outline-success">
+                      <i class="bi bi-check2"></i> Mark Done
+                    </button>
+                  </form>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-center py-4 px-3 text-muted">
+            <i class="bi bi-check2-circle fs-2 d-block mb-2 text-success"></i>
+            <p class="mb-1 fw-semibold">All caught up on follow-ups!</p>
+            <p class="small mb-3">No pending recruiter reminders or messages due.</p>
+            <a href="{{ url_for('followups.create') }}" class="btn btn-sm btn-outline-secondary">Schedule Follow-up</a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Applications Table Section -->
+<div class="card">
+  <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+    <h5 class="h6 fw-bold mb-0">
+      <i class="bi bi-briefcase text-primary me-2"></i>Recent Applications
+    </h5>
+    <a href="{{ url_for('applications.index') }}" class="small fw-semibold text-primary text-decoration-none">
+      View All ({{ metrics.total_applications }}) <i class="bi bi-arrow-right"></i>
+    </a>
+  </div>
+  <div class="card-body p-0">
+    {% if metrics.recent_applications %}
+      <div class="table-responsive">
+        <table class="table table-custom mb-0">
+          <thead>
+            <tr>
+              <th>Company</th>
+              <th>Role</th>
+              <th>Applied Date</th>
+              <th>Work Mode</th>
+              <th>Priority</th>
+              <th>Status</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for app in metrics.recent_applications %}
+              <tr>
+                <td>
+                  <a href="{{ url_for('applications.detail', id=app.id) }}" class="fw-bold text-dark text-decoration-none">
+                    {{ app.company_name }}
+                  </a>
+                </td>
+                <td>{{ app.job_title }}</td>
+                <td>{{ app.application_date.strftime('%b %d, %Y') }}</td>
+                <td>
+                  <span class="badge bg-light text-secondary border">{{ app.work_mode }}</span>
+                </td>
+                <td>
+                  <span class="badge {{ app.priority_badge_class }}">{{ app.priority }}</span>
+                </td>
+                <td>
+                  <span class="badge-status {{ app.status_badge_class }}">
+                    {{ app.status }}
+                  </span>
+                </td>
+                <td class="text-end">
+                  <div class="btn-group btn-group-sm">
+                    <a href="{{ url_for('applications.detail', id=app.id) }}" class="btn btn-light border" title="View details">
+                      <i class="bi bi-eye"></i>
+                    </a>
+                    <a href="{{ url_for('applications.edit', id=app.id) }}" class="btn btn-light border" title="Edit">
+                      <i class="bi bi-pencil"></i>
+                    </a>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="text-center py-5">
+        <i class="bi bi-folder-plus fs-1 text-muted d-block mb-3"></i>
+        <h5 class="h6 fw-bold">No Applications Tracked Yet</h5>
+        <p class="text-muted small mb-3">Get started by creating your first job application record.</p>
+        <a href="{{ url_for('applications.create') }}" class="btn btn-primary">
+          <i class="bi bi-plus-lg me-1"></i> Add First Application
+        </a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const statusData = {{ status_chart | tojson }};
+    const monthlyData = {{ monthly_chart | tojson }};
+    initDashboardCharts(statusData, monthlyData);
+  });
+</script>
+{% endblock %}

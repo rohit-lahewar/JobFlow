@@ -1,0 +1,216 @@
+{% extends 'base.html' %}
+
+{% block title %}Analytics & Insights — JobFlow{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+  <div>
+    <h2 class="h3 fw-bold mb-1">Pipeline Analytics & Conversion Metrics</h2>
+    <p class="text-muted small mb-0">Evaluate your application-to-interview velocity and offer conversion rates.</p>
+  </div>
+  <div>
+    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 fw-semibold">
+      <i class="bi bi-cpu me-1"></i> Real-time Database Aggregation
+    </span>
+  </div>
+</div>
+
+<!-- Conversion Metric Cards -->
+<div class="row g-3 mb-4">
+  <!-- Interview Conversion Rate -->
+  <div class="col-sm-6 col-lg-3">
+    <div class="card p-3 h-100 border">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="small fw-semibold text-muted text-uppercase">Interview Rate</span>
+        <div class="p-2 rounded bg-warning-subtle text-warning">
+          <i class="bi bi-funnel fs-5"></i>
+        </div>
+      </div>
+      <div class="fs-2 fw-bold text-dark">{{ analytics.interview_rate }}%</div>
+      <div class="small text-muted">
+        <strong>{{ analytics.apps_with_interviews }}</strong> reached interview stage
+      </div>
+      <div class="progress mt-2" style="height: 6px;">
+        <div class="progress-bar bg-warning" role="progressbar" style="width: {{ analytics.interview_rate }}%" aria-valuenow="{{ analytics.interview_rate }}" aria-valuemin="0" aria-valuemax="100"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Offer Conversion Rate -->
+  <div class="col-sm-6 col-lg-3">
+    <div class="card p-3 h-100 border">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="small fw-semibold text-muted text-uppercase">Offer Rate</span>
+        <div class="p-2 rounded bg-success-subtle text-success">
+          <i class="bi bi-award fs-5"></i>
+        </div>
+      </div>
+      <div class="fs-2 fw-bold text-success">{{ analytics.offer_rate }}%</div>
+      <div class="small text-muted">
+        <strong>{{ analytics.offers }}</strong> offers out of <strong>{{ analytics.total_applications }}</strong> applications
+      </div>
+      <div class="progress mt-2" style="height: 6px;">
+        <div class="progress-bar bg-success" role="progressbar" style="width: {{ analytics.offer_rate }}%" aria-valuenow="{{ analytics.offer_rate }}" aria-valuemin="0" aria-valuemax="100"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rejection Rate -->
+  <div class="col-sm-6 col-lg-3">
+    <div class="card p-3 h-100 border">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="small fw-semibold text-muted text-uppercase">Rejection Rate</span>
+        <div class="p-2 rounded bg-danger-subtle text-danger">
+          <i class="bi bi-x-octagon fs-5"></i>
+        </div>
+      </div>
+      <div class="fs-2 fw-bold text-danger">{{ analytics.rejection_rate }}%</div>
+      <div class="small text-muted">
+        <strong>{{ analytics.rejections }}</strong> archived / not selected
+      </div>
+      <div class="progress mt-2" style="height: 6px;">
+        <div class="progress-bar bg-danger" role="progressbar" style="width: {{ analytics.rejection_rate }}%" aria-valuenow="{{ analytics.rejection_rate }}" aria-valuemin="0" aria-valuemax="100"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Total Interview Rounds Conducted -->
+  <div class="col-sm-6 col-lg-3">
+    <div class="card p-3 h-100 border">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="small fw-semibold text-muted text-uppercase">Total Rounds</span>
+        <div class="p-2 rounded bg-info-subtle text-info">
+          <i class="bi bi-calendar2-range fs-5"></i>
+        </div>
+      </div>
+      <div class="fs-2 fw-bold text-info">{{ analytics.total_interviews }}</div>
+      <div class="small text-muted">
+        Total individual interview stages logged
+      </div>
+      <div class="progress mt-2" style="height: 6px;">
+        <div class="progress-bar bg-info" role="progressbar" style="width: 100%"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Primary Charts Row -->
+<div class="row g-4 mb-4">
+  <!-- Applications by Status -->
+  <div class="col-lg-5">
+    <div class="card h-100 p-3">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="h6 fw-bold mb-0">Applications by Status</h5>
+        <span class="small text-muted">Current Pipeline</span>
+      </div>
+      <div style="position: relative; height: 280px;">
+        <canvas id="analyticsStatusChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Monthly Applications Trend -->
+  <div class="col-lg-7">
+    <div class="card h-100 p-3">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="h6 fw-bold mb-0">Applications Submitted by Month</h5>
+        <span class="small text-muted">Volume Trend</span>
+      </div>
+      <div style="position: relative; height: 280px;">
+        <canvas id="monthlyAppsChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Secondary Charts Row -->
+<div class="row g-4 mb-4">
+  <!-- Interviews Conducted by Month -->
+  <div class="col-lg-6">
+    <div class="card h-100 p-3">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="h6 fw-bold mb-0">Interviews Held by Month</h5>
+        <span class="small text-muted">Momentum Curve</span>
+      </div>
+      <div style="position: relative; height: 260px;">
+        <canvas id="monthlyInterviewsChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Funnel: Applications vs Interviews vs Offers vs Rejections -->
+  <div class="col-lg-6">
+    <div class="card h-100 p-3">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="h6 fw-bold mb-0">Funnel Comparison (Offers vs Rejections)</h5>
+        <span class="small text-muted">Conversion Stages</span>
+      </div>
+      <div style="position: relative; height: 260px;">
+        <canvas id="conversionComparisonChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tertiary Breakdown Row: Work Mode & Priority Distribution -->
+<div class="row g-4 mb-4">
+  <div class="col-md-6 col-lg-4">
+    <div class="card h-100 p-3">
+      <h5 class="h6 fw-bold mb-3">Work Mode Preference</h5>
+      <div style="position: relative; height: 220px;">
+        <canvas id="workModeChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6 col-lg-8">
+    <div class="card h-100 p-3">
+      <h5 class="h6 fw-bold mb-3">Pipeline Strategy & Insights</h5>
+      <div class="row g-3">
+        <div class="col-sm-6">
+          <div class="p-3 bg-light rounded">
+            <div class="fw-bold text-dark mb-1">Interview Conversion Target</div>
+            <div class="small text-muted">
+              Industry benchmark is typically 10%–20%. Your current rate is <strong>{{ analytics.interview_rate }}%</strong>.
+              {% if analytics.interview_rate >= 15 %}
+                <span class="badge bg-success-subtle text-success ms-1">Strong resume response</span>
+              {% else %}
+                <span class="badge bg-warning-subtle text-warning ms-1">Tailor resume keywords</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <div class="col-sm-6">
+          <div class="p-3 bg-light rounded">
+            <div class="fw-bold text-dark mb-1">Offer Conversion Target</div>
+            <div class="small text-muted">
+              Average offer conversion from interview stage is 15%–30%. Your offer-to-application rate is <strong>{{ analytics.offer_rate }}%</strong>.
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12">
+          <div class="p-3 bg-light rounded d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+              <div class="fw-bold text-dark">Data Isolation Guarantee</div>
+              <div class="small text-muted">All rates, counts, and timelines are computed strictly from your authenticated account in MySQL.</div>
+            </div>
+            <a href="{{ url_for('applications.index') }}" class="btn btn-sm btn-outline-primary">Manage Applications</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/analytics.js') }}"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const analyticsData = {{ analytics | tojson }};
+    initAnalyticsCharts(analyticsData);
+  });
+</script>
+{% endblock %}

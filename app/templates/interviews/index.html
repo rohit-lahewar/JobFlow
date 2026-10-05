@@ -1,0 +1,223 @@
+{% extends 'base.html' %}
+
+{% block title %}Interviews — JobFlow{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+  <div>
+    <h2 class="h3 fw-bold mb-1">Interview Rounds</h2>
+    <p class="text-muted small mb-0">Track upcoming coding assessments, system design interviews, and recruiter rounds.</p>
+  </div>
+  <div>
+    <a href="{{ url_for('interviews.create') }}" class="btn btn-primary">
+      <i class="bi bi-calendar-plus me-1"></i> Schedule Interview
+    </a>
+  </div>
+</div>
+
+<!-- Tabs Navigation for Upcoming, Completed, Cancelled, All -->
+<div class="card bg-white p-3 mb-4">
+  <ul class="nav nav-pills mb-3" id="interviewTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="upcoming-tab" data-bs-toggle="pill" data-bs-target="#upcoming" type="button" role="tab" aria-selected="true">
+        <i class="bi bi-calendar-check me-1"></i> Upcoming ({{ upcoming | length }})
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="completed-tab" data-bs-toggle="pill" data-bs-target="#completed" type="button" role="tab" aria-selected="false">
+        <i class="bi bi-check-circle me-1"></i> Completed ({{ completed | length }})
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="cancelled-tab" data-bs-toggle="pill" data-bs-target="#cancelled" type="button" role="tab" aria-selected="false">
+        <i class="bi bi-x-circle me-1"></i> Cancelled ({{ cancelled | length }})
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="all-tab" data-bs-toggle="pill" data-bs-target="#all" type="button" role="tab" aria-selected="false">
+        <i class="bi bi-list-columns me-1"></i> All Rounds ({{ all_interviews | length }})
+      </button>
+    </li>
+  </ul>
+
+  <!-- Tab Content Panels -->
+  <div class="tab-content" id="interviewTabsContent">
+    <!-- 1. Upcoming Interviews Tab -->
+    <div class="tab-pane fade show active" id="upcoming" role="tabpanel">
+      {% if upcoming %}
+        <div class="row g-3">
+          {% for iv in upcoming %}
+            <div class="col-md-6 col-lg-4">
+              <div class="card h-100 card-hover p-3 border">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <span class="badge {{ iv.status_badge_class }}">{{ iv.status }}</span>
+                  <span class="badge bg-light text-secondary border">{{ iv.interview_type }}</span>
+                </div>
+                <h5 class="h6 fw-bold mb-1 text-dark">{{ iv.round_name }}</h5>
+                <div class="small fw-semibold text-primary mb-2">
+                  <a href="{{ url_for('applications.detail', id=iv.application_id) }}" class="text-decoration-none">
+                    {{ iv.application.company_name }} &bull; {{ iv.application.job_title }}
+                  </a>
+                </div>
+                <div class="small text-secondary mb-2">
+                  <i class="bi bi-calendar3 me-1"></i><strong>{{ iv.interview_date.strftime('%a, %b %d, %Y') }}</strong>
+                  {% if iv.start_time %}<span class="ms-1">at {{ iv.start_time }}</span>{% endif %}
+                </div>
+                {% if iv.interviewer %}
+                  <div class="small text-muted mb-2"><i class="bi bi-person me-1"></i>{{ iv.interviewer }}</div>
+                {% endif %}
+                {% if iv.notes %}
+                  <div class="small text-muted bg-light p-2 rounded mb-3 fst-italic">"{{ iv.notes | truncate(90) }}"</div>
+                {% endif %}
+                <div class="mt-auto d-flex justify-content-between align-items-center pt-2 border-top">
+                  {% if iv.meeting_link %}
+                    <a href="{{ iv.meeting_link }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-primary">
+                      <i class="bi bi-camera-video me-1"></i>Join Link
+                    </a>
+                  {% else %}
+                    <span class="small text-muted">No link</span>
+                  {% endif %}
+                  <div class="btn-group btn-group-sm">
+                    <a href="{{ url_for('interviews.edit', id=iv.id) }}" class="btn btn-light border" title="Edit">
+                      <i class="bi bi-pencil"></i>
+                    </a>
+                    <button type="button" class="btn btn-light border text-danger"
+                            data-bs-toggle="modal"
+                            data-bs-target="#confirmDeleteModal"
+                            data-action-url="{{ url_for('interviews.delete', id=iv.id) }}"
+                            data-item-name="{{ iv.round_name }} at {{ iv.application.company_name }}">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="text-center py-5 text-muted">
+          <i class="bi bi-calendar-check fs-1 text-muted d-block mb-2"></i>
+          <h5 class="h6 fw-bold">No Upcoming Interviews</h5>
+          <p class="small text-muted mb-3">When you schedule your next interview round, it will appear here.</p>
+          <a href="{{ url_for('interviews.create') }}" class="btn btn-primary btn-sm">Schedule Now</a>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- 2. Completed Interviews Tab -->
+    <div class="tab-pane fade" id="completed" role="tabpanel">
+      {% if completed %}
+        <div class="table-responsive">
+          <table class="table table-custom mb-0">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Company & Role</th>
+                <th>Round</th>
+                <th>Interviewer</th>
+                <th>Status</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for iv in completed %}
+                <tr>
+                  <td>{{ iv.interview_date.strftime('%b %d, %Y') }}</td>
+                  <td>
+                    <a href="{{ url_for('applications.detail', id=iv.application_id) }}" class="fw-bold text-dark text-decoration-none">
+                      {{ iv.application.company_name }}
+                    </a>
+                    <div class="small text-muted">{{ iv.application.job_title }}</div>
+                  </td>
+                  <td>{{ iv.round_name }}</td>
+                  <td>{{ iv.interviewer or '—' }}</td>
+                  <td><span class="badge {{ iv.status_badge_class }}">{{ iv.status }}</span></td>
+                  <td class="text-end">
+                    <a href="{{ url_for('interviews.edit', id=iv.id) }}" class="btn btn-sm btn-light border">Edit</a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="text-center py-5 text-muted">No completed interviews yet.</div>
+      {% endif %}
+    </div>
+
+    <!-- 3. Cancelled Interviews Tab -->
+    <div class="tab-pane fade" id="cancelled" role="tabpanel">
+      {% if cancelled %}
+        <div class="table-responsive">
+          <table class="table table-custom mb-0">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Company</th>
+                <th>Round</th>
+                <th>Status</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for iv in cancelled %}
+                <tr>
+                  <td>{{ iv.interview_date.strftime('%b %d, %Y') }}</td>
+                  <td>{{ iv.application.company_name }}</td>
+                  <td>{{ iv.round_name }}</td>
+                  <td><span class="badge {{ iv.status_badge_class }}">{{ iv.status }}</span></td>
+                  <td class="text-end">
+                    <a href="{{ url_for('interviews.edit', id=iv.id) }}" class="btn btn-sm btn-light border">Edit</a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="text-center py-5 text-muted">No cancelled interviews.</div>
+      {% endif %}
+    </div>
+
+    <!-- 4. All Interviews Tab -->
+    <div class="tab-pane fade" id="all" role="tabpanel">
+      {% if all_interviews %}
+        <div class="table-responsive">
+          <table class="table table-custom mb-0">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Company & Role</th>
+                <th>Round</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for iv in all_interviews %}
+                <tr>
+                  <td>{{ iv.interview_date.strftime('%b %d, %Y') }}</td>
+                  <td>
+                    <a href="{{ url_for('applications.detail', id=iv.application_id) }}" class="fw-bold text-dark text-decoration-none">
+                      {{ iv.application.company_name }}
+                    </a>
+                  </td>
+                  <td>{{ iv.round_name }}</td>
+                  <td><span class="badge bg-light text-muted border">{{ iv.interview_type }}</span></td>
+                  <td><span class="badge {{ iv.status_badge_class }}">{{ iv.status }}</span></td>
+                  <td class="text-end">
+                    <a href="{{ url_for('interviews.edit', id=iv.id) }}" class="btn btn-sm btn-light border">Edit</a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="text-center py-5 text-muted">No interviews on record yet.</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

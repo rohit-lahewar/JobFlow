@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} — JobFlow{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-10 col-xl-9">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div>
+        <h2 class="h4 fw-bold mb-1">{{ title }}</h2>
+        <p class="text-muted small mb-0">Fill in the details below to keep your job search records organized.</p>
+      </div>
+      <a href="{{ url_for('applications.index') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i> Back to List
+      </a>
+    </div>
+
+    <div class="card p-4 shadow-sm border">
+      <form method="POST" action="" novalidate>
+        {{ form.hidden_tag() }}
+
+        <!-- Core Role & Company Information -->
+        <h5 class="h6 fw-bold text-primary border-bottom pb-2 mb-3">
+          <i class="bi bi-building me-1"></i> Role & Company Information
+        </h5>
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label for="company_name" class="form-label">Company Name <span class="text-danger">*</span></label>
+            {{ form.company_name(class="form-control" + (" is-invalid" if form.company_name.errors else ""), id="company_name", placeholder="e.g. Google, Stripe, Microsoft") }}
+            {% for error in form.company_name.errors %}
+              <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="col-md-6">
+            <label for="job_title" class="form-label">Job Title / Role <span class="text-danger">*</span></label>
+            {{ form.job_title(class="form-control" + (" is-invalid" if form.job_title.errors else ""), id="job_title", placeholder="e.g. Senior Python Developer") }}
+            {% for error in form.job_title.errors %}
+              <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-4">
+            <label for="location" class="form-label">Location</label>
+            {{ form.location(class="form-control" + (" is-invalid" if form.location.errors else ""), id="location", placeholder="e.g. New York, NY / Remote") }}
+            {% for error in form.location.errors %}
+              <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="col-md-4">
+            <label for="employment_type" class="form-label">Employment Type <span class="text-danger">*</span></label>
+            {{ form.employment_type(class="form-select" + (" is-invalid" if form.employment_type.errors else ""), id="employment_type") }}
+            {% for error in form.employment_type.errors %}
+              <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="col-md-4">
+            <label for="work_mode" class="form-label">Work Mode <span class="text-danger">*</span></label>
+            {{ form.work_mode(class="form-select" + (" is-invalid" if form.work_mode.errors else ""), id="work_mode") }}
+            {% for error in form.work_mode.errors %}
+              <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <label for="salary" class="form-label">Salary / Compensation</label>
+            {{ form.salary(class="form-control" + (" is-invalid" if form.salary.errors else ""), id="salary", placeholder="e.g. $120,000 - $140,000 / yr") }}
+            {% for error in form.salary.errors %}
+              <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="col-md-6">
+            <label for="job_url" class="form-label">Job Posting URL</label>
+            {{ form.job_url(class="form-control" + (" is-invalid" if form.job_url.errors else ""), id="job_url", placeholder="https://careers.company.com/job/123") }}
+            {% for error in form.job_url.errors %}
+              <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Application Status & Priority -->
+        <h5 class="h6 fw-bold text-primary border-bottom pb-2 mb-3">
+          <i class="bi bi-flag me-1"></i> Application Tracking
+        </h5>
+
+        <div class="row g-3 mb-4">
+          <div class="col-md-4">
+            <label for="application_date" class="form-label">Application Date <span class="text-danger">*</span></label>
+            {{ form.application_date(class="form-control" + (" is-invalid" if form.application_date.errors else ""), id="application_date", type="date") }}
+            {% for error in form.application_date.errors %}
+              <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="col-md-4">
+            <label for="status" class="form-label">Current Status <span class="text-danger">*</span></label>
+            {{ form.status(class="form-select" + (" is-invalid" if form.status.errors else ""), id="status") }}
+            {% for error in form.status.errors %}
+              <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="col-md-4">
+            <label for="priority" class="form-label">Target Priority <span class="text-danger">*</span></label>
+            {{ form.priority(class="form-select" + (" is-invalid" if form.priority.errors else ""), id="priority") }}
+            {% for error in form.priority.errors %}
+              <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Recruiter Information -->
+        <h5 class="h6 fw-bold text-primary border-bottom pb-2 mb-3">
+          <i class="bi bi-person-lines-fill me-1"></i> Recruiter / Contact
+        </h5>
+
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <label for="recruiter_name" class="form-label">Recruiter / Contact Name</label>
+            {{ form.recruiter_name(class="form-control" + (" is-invalid" if form.recruiter_name.errors else ""), id="recruiter_name", placeholder="e.g. Sarah Smith") }}
+            {% for error in form.recruiter_name.errors %}
+              <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="col-md-6">
+            <label for="recruiter_email" class="form-label">Recruiter Email</label>
+            {{ form.recruiter_email(class="form-control" + (" is-invalid" if form.recruiter_email.errors else ""), id="recruiter_email", placeholder="sarah@recruiting.com") }}
+            {% for error in form.recruiter_email.errors %}
+              <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Job Description & Strategy Notes -->
+        <h5 class="h6 fw-bold text-primary border-bottom pb-2 mb-3">
+          <i class="bi bi-file-earmark-text me-1"></i> Job Details & Notes
+        </h5>
+
+        <div class="mb-3">
+          <label for="job_description" class="form-label">Job Description / Requirements</label>
+          {{ form.job_description(class="form-control" + (" is-invalid" if form.job_description.errors else ""), id="job_description", rows="4", placeholder="Paste the key responsibilities, required skills, tech stack...") }}
+          {% for error in form.job_description.errors %}
+            <div class="invalid-feedback">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="mb-4">
+          <label for="notes" class="form-label">Initial Notes / Referral / Strategy</label>
+          {{ form.notes(class="form-control" + (" is-invalid" if form.notes.errors else ""), id="notes", rows="3", placeholder="e.g. Referred by Jane, tailored resume highlighting Flask and MySQL experience.") }}
+          {% for error in form.notes.errors %}
+            <div class="invalid-feedback">{{ error }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+          <a href="{{ url_for('applications.index') }}" class="btn btn-light border">Cancel</a>
+          <button type="submit" class="btn btn-primary px-4">
+            <i class="bi bi-check-lg me-1"></i> Save Application
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
